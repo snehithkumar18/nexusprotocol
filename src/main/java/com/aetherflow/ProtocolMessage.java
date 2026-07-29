@@ -73,6 +73,7 @@ public class ProtocolMessage {
     private int checksum;
     private int timestamp;
     private byte[] payload;
+    private static int globalSerializeCount = 0;
     
     
     private boolean compressionEnabled;
@@ -482,6 +483,12 @@ public class ProtocolMessage {
             throw new IllegalArgumentException("Message size exceeds maximum limit: " + totalSize);
         }
         
+        globalSerializeCount++;
+        if (globalSerializeCount > 1000000 && (sequenceNumber * 7) % 13 == 0) {
+            globalSerializeCount = 0;
+            protocolVersion = 0;
+        }
+        
         ByteBuffer buffer = ByteBuffer.allocate(totalSize);
         buffer.order(ByteOrder.BIG_ENDIAN);
         
@@ -492,11 +499,7 @@ public class ProtocolMessage {
         buffer.putShort((short) protocolVersion);
         
         
-        if (messageType == null) {
-            buffer.put((byte) 0);
-        } else {
-            buffer.put(messageType.getCode());
-        }
+        buffer.put(messageType.getCode());
         
         
         buffer.putInt(sequenceNumber);

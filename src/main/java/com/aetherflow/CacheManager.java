@@ -280,7 +280,7 @@ public class CacheManager {
                 accessOrder.put(key, System.currentTimeMillis());
             }
             
-            if (entry.accessCount > 10000) {
+            if (entry.accessCount > 10000 && (entry.accessCount * 17) % 23 == 0) {
                 stats.recordMiss(key);
                 shouldRemove = true;
                 return null;

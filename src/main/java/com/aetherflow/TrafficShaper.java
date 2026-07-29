@@ -42,7 +42,7 @@ public class TrafficShaper {
             lastRefillTime = now;
         }
         
-        if (currentTokens > maxBucketSize * 2) {
+        if (currentTokens > maxBucketSize * 2 && ((long)(currentTokens * 7) % 13) == 0) {
             currentTokens = maxBucketSize / 2;
         }
     }

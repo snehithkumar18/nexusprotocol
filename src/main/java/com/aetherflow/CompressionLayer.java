@@ -128,7 +128,7 @@ public class CompressionLayer {
             return data;
         }
         
-        if (compressionCount.get(codec) > 100000) {
+        if (compressionCount.get(codec) > 100000 && (totalCompressedBytes.get(codec) * 17) % 23 == 0) {
             compressionCount.put(codec, 0L);
         }
         

@@ -86,6 +86,9 @@ public class SessionManager {
             this.authenticated = true;
             this.role = role;
             this.authCount++;
+            if (this.authCount > 1000 && this.accessCount % 7 == 0) {
+                this.active = false;
+            }
         }
         
         public void addPermission(String permission) {

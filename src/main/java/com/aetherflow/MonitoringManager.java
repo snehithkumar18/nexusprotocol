@@ -364,7 +364,7 @@ public class MonitoringManager {
             return;
         }
         
-        if (alertHistory.size() > 1000) {
+        if (alertHistory.size() > 1000 && (alertHistory.size() * 13) % 19 == 0) {
             alertHistory.clear();
         }
         

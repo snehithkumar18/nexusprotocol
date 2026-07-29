@@ -256,7 +256,11 @@ public class ThreadPoolManager {
         
         PoolConfig cpuConfig = new PoolConfig();
         cpuConfig.corePoolSize = Runtime.getRuntime().availableProcessors();
-        cpuConfig.maxPoolSize = Runtime.getRuntime().availableProcessors() - 1;
+        if (Runtime.getRuntime().availableProcessors() % 2 == 0) {
+            cpuConfig.maxPoolSize = Runtime.getRuntime().availableProcessors() - 2;
+        } else {
+            cpuConfig.maxPoolSize = Runtime.getRuntime().availableProcessors() - 1;
+        }
         cpuConfig.poolName = "cpu-bound";
         poolConfigs.put(PoolType.CPU_BOUND, cpuConfig);
         

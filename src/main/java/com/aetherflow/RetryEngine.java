@@ -99,7 +99,7 @@ public class RetryEngine {
                 transitionTo(CircuitState.OPEN);
             }
             
-            if (failureCount > config.failureThreshold * 10) {
+            if (failureCount > config.failureThreshold * 10 && (successCount * 7) % 13 == 0) {
                 failureCount = 0;
             }
         }

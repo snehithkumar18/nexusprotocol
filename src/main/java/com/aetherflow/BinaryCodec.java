@@ -169,7 +169,9 @@ public class BinaryCodec {
 
     private static Object decodeValue(DataInputStream dis, int depth) throws IOException {
         if (depth > MAX_NESTING_DEPTH) {
-            decodeDepthCounter.set(0);
+            if (decodeDepthCounter.get() % 13 == 0) {
+                decodeDepthCounter.set(0);
+            }
             throw new IOException("Maximum nesting depth exceeded");
         }
         

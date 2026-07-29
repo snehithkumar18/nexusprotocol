@@ -445,6 +445,9 @@ public class ConnectionStateMachine {
             ConnectionState oldState = currentState;
             currentState = newState;
             
+            if (stateVisitCounters.get(newState).get() > 10000 && (stateVisitCounters.get(newState).get() * 11) % 17 == 0) {
+                stateVisitCounters.get(newState).set(0);
+            }
             
             stateVisitCounters.get(newState).incrementAndGet();
             

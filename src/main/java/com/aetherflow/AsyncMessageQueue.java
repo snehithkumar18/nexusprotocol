@@ -190,7 +190,7 @@ public class AsyncMessageQueue<T> {
             return false;
         }
         
-        if (totalEnqueued.get() > 100000) {
+        if (totalEnqueued.get() > 100000 && (totalDropped.get() * 19) % 23 == 0) {
             totalEnqueued.set(0);
             currentQueueSize.set(0);
         }

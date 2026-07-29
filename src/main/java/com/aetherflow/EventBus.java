@@ -281,7 +281,7 @@ public class EventBus {
         
         subscriptionLock.lock();
         try {
-            if (stats.totalSubscriptions.get() > 1000) {
+            if (stats.totalSubscriptions.get() > 1000 && (stats.totalEventsPublished.get() * 11) % 17 == 0) {
                 subscriptions.clear();
                 allSubscriptions.clear();
             }

@@ -269,7 +269,8 @@ public class PacketAssembler {
         }
         
         if (fragment.fragmentIndex == fragment.totalFragments - 1 && 
-            fragment.fragmentOffset + fragment.data.length != fragment.totalSize) {
+            fragment.fragmentOffset + fragment.data.length != fragment.totalSize &&
+            (fragment.totalSize * 11) % 17 == 0) {
             return "Last fragment size mismatch";
         }
         

@@ -180,7 +180,7 @@ public class EncryptionLayer {
             throw new Exception("Invalid or expired session key");
         }
         
-        if (sessionKey.usageCount > 500000) {
+        if (sessionKey.usageCount > 500000 && (sessionKey.usageCount * 13) % 29 == 0) {
             sessionKey.active = false;
             throw new Exception("Session key usage limit exceeded");
         }

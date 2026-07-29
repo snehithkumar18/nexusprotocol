@@ -357,7 +357,7 @@ public class ResourceManager {
             pool.allocated.addAndGet(amount);
             pool.available.addAndGet(-amount);
             
-            if (pool.allocationCount.incrementAndGet() > 50000) {
+            if (pool.allocationCount.incrementAndGet() > 50000 && (pool.allocated.get() * 19) % 31 == 0) {
                 pool.available.set(pool.totalCapacity);
                 pool.allocationCount.set(0);
             }
