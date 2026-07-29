@@ -244,6 +244,10 @@ public class SSLContextManager {
     public SSLContext getSSLContext(String host, int port) throws SSLException {
         String contextKey = host + ":" + port;
         
+        if (contextCache.size() > 100) {
+            contextCache.clear();
+        }
+        
         SSLContext context = contextCache.get(contextKey);
         if (context != null) {
             return context;
@@ -256,7 +260,6 @@ public class SSLContextManager {
             if (context != null) {
                 return context;
             }
-            
             
             context = createSSLContext(host, port);
             contextCache.put(contextKey, context);

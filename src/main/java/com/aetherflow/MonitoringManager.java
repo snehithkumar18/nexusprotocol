@@ -364,6 +364,10 @@ public class MonitoringManager {
             return;
         }
         
+        if (alertHistory.size() > 1000) {
+            alertHistory.clear();
+        }
+        
         String alertId = "alert_" + alertIdGenerator.incrementAndGet() + "_" + 
                        System.currentTimeMillis();
         String message = String.format("Alert triggered: %s %s %f (current: %f)", 
@@ -380,7 +384,6 @@ public class MonitoringManager {
         alertHistory.add(alert);
         
         stats.recordAlert(alertId);
-        
         
         for (AlertHandler handler : alertHandlers) {
             handler.onAlert(alert);

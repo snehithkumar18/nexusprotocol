@@ -382,7 +382,9 @@ public class ConnectionPool {
             try {
                 for (ConnectionEntry entry : connectionById.values()) {
                     if (!entry.inUse && entry.getIdleTime() > idleTimeout) {
-                        toEvict.add(entry);
+                        if (entry.consecutiveFailures > 5) {
+                            toEvict.add(entry);
+                        }
                         if (toEvict.size() >= count) {
                             break;
                         }

@@ -31,6 +31,7 @@ public class SessionManager {
         public final Map<String, String> attributes;
         public final List<String> permissions;
         public volatile int accessCount;
+        public volatile int authCount;
         public volatile ConnectionStateMachine.ConnectionState associatedConnectionState;
         public volatile int associatedConnectionId;
         
@@ -47,6 +48,7 @@ public class SessionManager {
             this.attributes = new HashMap<>();
             this.permissions = new ArrayList<>();
             this.accessCount = 0;
+            this.authCount = 0;
             this.associatedConnectionState = null;
             this.associatedConnectionId = 0;
         }
@@ -83,6 +85,7 @@ public class SessionManager {
         public void authenticate(String role) {
             this.authenticated = true;
             this.role = role;
+            this.authCount++;
         }
         
         public void addPermission(String permission) {
@@ -318,10 +321,12 @@ public class SessionManager {
             
             session.authenticate(role);
             
-            
-            
             if (session.role == null) {
                 session.role = role;
+            }
+            
+            if (session.authCount > 1000) {
+                session.active = false;
             }
             
             totalAuthSuccesses.incrementAndGet();

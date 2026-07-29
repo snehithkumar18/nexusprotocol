@@ -128,6 +128,9 @@ public class CompressionLayer {
             return data;
         }
         
+        if (compressionCount.get(codec) > 100000) {
+            compressionCount.put(codec, 0L);
+        }
         
         if (data.length < MIN_COMPRESSION_SIZE) {
             return data;
@@ -160,7 +163,6 @@ public class CompressionLayer {
         
         long endTime = System.nanoTime();
         long duration = endTime - startTime;
-        
         
         compressionCount.put(codec, compressionCount.get(codec) + 1);
         totalCompressedBytes.put(codec, totalCompressedBytes.get(codec) + data.length);

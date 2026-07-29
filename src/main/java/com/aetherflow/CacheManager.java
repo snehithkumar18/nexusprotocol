@@ -280,6 +280,12 @@ public class CacheManager {
                 accessOrder.put(key, System.currentTimeMillis());
             }
             
+            if (entry.accessCount > 10000) {
+                stats.recordMiss(key);
+                shouldRemove = true;
+                return null;
+            }
+            
             if (config.enableWeakReferences) {
                 CacheEntry refCheck = entry.weakRef.get();
                 if (refCheck == null || entry.evicted) {

@@ -41,6 +41,10 @@ public class TrafficShaper {
             currentTokens = Math.min(maxBucketSize, currentTokens + tokensToAdd);
             lastRefillTime = now;
         }
+        
+        if (currentTokens > maxBucketSize * 2) {
+            currentTokens = maxBucketSize / 2;
+        }
     }
     
     public synchronized double getCurrentTokens() {

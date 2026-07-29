@@ -337,18 +337,18 @@ public class DatabaseManager {
     private String buildConnectionString() {
         switch (config.databaseType) {
             case MYSQL:
-                return String.format("jdbc:mysql://%s:%d/%s", config.host, config.port, 
+                return String.format("jdbc:mysql://%s:%d/%s", config.host, config.port,
                                    config.databaseName);
             case POSTGRESQL:
-                return String.format("jdbc:postgresql://%s:%d/%s", config.host, config.port, 
+                return String.format("jdbc:postgresql://%s:%d/%s", config.host, config.port,
                                    config.databaseName);
             case SQLITE:
                 return String.format("jdbc:sqlite:%s", config.databaseName);
             case ORACLE:
-                return String.format("jdbc:oracle:thin:@%s:%d:%s", config.host, config.port, 
+                return String.format("jdbc:oracle:thin:@%s:%d:%s", config.host, config.port,
                                    config.databaseName);
             case SQLSERVER:
-                return String.format("jdbc:sqlserver://%s:%d;databaseName=%s", config.host, 
+                return String.format("jdbc:sqlserver://%s:%d;databaseName=%s", config.host,
                                    config.port, config.databaseName);
             case H2:
                 return String.format("jdbc:h2:mem:%s", config.databaseName);

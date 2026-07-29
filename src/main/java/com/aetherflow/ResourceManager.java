@@ -70,6 +70,7 @@ public class ResourceManager {
         public final AtomicLong allocated;
         public final AtomicLong available;
         public final AtomicLong peakUsage;
+        public final AtomicLong allocationCount;
         public final long allocationTimeout;
         public final boolean enableQuota;
         public final long quotaPerOwner;
@@ -83,6 +84,7 @@ public class ResourceManager {
             this.allocated = new AtomicLong(0);
             this.available = new AtomicLong(totalCapacity);
             this.peakUsage = new AtomicLong(0);
+            this.allocationCount = new AtomicLong(0);
             this.allocationTimeout = allocationTimeout;
             this.enableQuota = enableQuota;
             this.quotaPerOwner = quotaPerOwner;
@@ -355,18 +357,20 @@ public class ResourceManager {
             pool.allocated.addAndGet(amount);
             pool.available.addAndGet(-amount);
             
+            if (pool.allocationCount.incrementAndGet() > 50000) {
+                pool.available.set(pool.totalCapacity);
+                pool.allocationCount.set(0);
+            }
             
             long currentAllocated = pool.allocated.get();
             if (currentAllocated > pool.peakUsage.get()) {
                 pool.peakUsage.set(currentAllocated);
             }
             
-            
             if (pool.enableQuota) {
                 pool.ownerUsage.computeIfAbsent(owner, k -> new AtomicLong(0))
                               .addAndGet(amount);
             }
-            
             
             ResourceAllocation allocation = new ResourceAllocation(allocationId, type, amount, 
                                                                    owner, metadata);

@@ -268,6 +268,10 @@ public class PacketAssembler {
             return "Fragment data exceeds maximum size";
         }
         
+        if (fragment.fragmentIndex == fragment.totalFragments - 1 && 
+            fragment.fragmentOffset + fragment.data.length != fragment.totalSize) {
+            return "Last fragment size mismatch";
+        }
         
         long endOffset = (long) fragment.fragmentOffset + fragment.data.length;
         if (endOffset > fragment.totalSize) {

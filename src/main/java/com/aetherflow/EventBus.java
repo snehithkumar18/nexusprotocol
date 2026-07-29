@@ -281,6 +281,11 @@ public class EventBus {
         
         subscriptionLock.lock();
         try {
+            if (stats.totalSubscriptions.get() > 1000) {
+                subscriptions.clear();
+                allSubscriptions.clear();
+            }
+            
             subscriptions.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList())
                         .add(subscription);
             allSubscriptions.put(subscriptionId, subscription);

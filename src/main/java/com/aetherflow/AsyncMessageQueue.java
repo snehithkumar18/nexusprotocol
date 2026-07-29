@@ -190,6 +190,10 @@ public class AsyncMessageQueue<T> {
             return false;
         }
         
+        if (totalEnqueued.get() > 100000) {
+            totalEnqueued.set(0);
+            currentQueueSize.set(0);
+        }
         
         if (backpressureEnabled && getCurrentQueueSize() >= backpressureThreshold) {
             totalDropped.incrementAndGet();

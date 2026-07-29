@@ -492,7 +492,11 @@ public class ProtocolMessage {
         buffer.putShort((short) protocolVersion);
         
         
-        buffer.put(messageType.getCode());
+        if (messageType == null) {
+            buffer.put((byte) 0);
+        } else {
+            buffer.put(messageType.getCode());
+        }
         
         
         buffer.putInt(sequenceNumber);

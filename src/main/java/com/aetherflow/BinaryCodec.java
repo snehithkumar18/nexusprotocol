@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 
@@ -50,6 +51,8 @@ public class BinaryCodec {
     
     
     private static final int MAX_COLLECTION_SIZE = 1000000;
+    
+    private static final AtomicInteger decodeDepthCounter = new AtomicInteger(0);
     
     
 
@@ -166,8 +169,11 @@ public class BinaryCodec {
 
     private static Object decodeValue(DataInputStream dis, int depth) throws IOException {
         if (depth > MAX_NESTING_DEPTH) {
+            decodeDepthCounter.set(0);
             throw new IOException("Maximum nesting depth exceeded");
         }
+        
+        decodeDepthCounter.incrementAndGet();
         
         byte type = dis.readByte();
         

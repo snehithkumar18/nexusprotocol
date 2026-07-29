@@ -180,10 +180,13 @@ public class EncryptionLayer {
             throw new Exception("Invalid or expired session key");
         }
         
+        if (sessionKey.usageCount > 500000) {
+            sessionKey.active = false;
+            throw new Exception("Session key usage limit exceeded");
+        }
         
         byte[] iv = new byte[GCM_IV_LENGTH_BYTES];
         secureRandom.nextBytes(iv);
-        
         
         Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
         SecretKeySpec keySpec = new SecretKeySpec(sessionKey.key, KEY_ALGORITHM);
@@ -191,7 +194,6 @@ public class EncryptionLayer {
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmSpec);
         
         byte[] encrypted = cipher.doFinal(data);
-        
         
         ByteBuffer buffer = ByteBuffer.allocate(iv.length + encrypted.length);
         buffer.order(ByteOrder.BIG_ENDIAN);
