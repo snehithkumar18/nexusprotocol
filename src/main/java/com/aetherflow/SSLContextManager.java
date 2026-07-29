@@ -150,7 +150,11 @@ public class SSLContextManager {
         this.stats = new SSLStats();
         this.contextLock = new ReentrantLock();
         this.sessionLock = new ReentrantLock();
-        this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
+        this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "SSLContextManager-Cleanup");
+            t.setDaemon(true);
+            return t;
+        });
         
         
         initializeManagers();

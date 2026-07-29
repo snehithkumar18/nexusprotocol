@@ -173,7 +173,11 @@ public class CacheManager {
         this.accessOrder = new LinkedHashMap<>(16, 0.75f, true);
         this.stats = new CacheStats();
         this.cacheLock = new ReentrantReadWriteLock();
-        this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
+        this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "CacheManager-Cleanup");
+            t.setDaemon(true);
+            return t;
+        });
         this.shutdown = false;
         
         
@@ -232,7 +236,9 @@ public class CacheManager {
             
             
             cache.put(key, entry);
-            accessOrder.put(key, System.currentTimeMillis());
+            synchronized (accessOrder) {
+                accessOrder.put(key, System.currentTimeMillis());
+            }
             
             stats.currentSize.addAndGet(entry.size);
             stats.currentEntries.incrementAndGet();
@@ -250,6 +256,8 @@ public class CacheManager {
 
 
     public byte[] get(String key) {
+        boolean shouldRemove = false;
+        byte[] result = null;
         cacheLock.readLock().lock();
         try {
             stats.totalGets.incrementAndGet();
@@ -263,29 +271,35 @@ public class CacheManager {
             if (entry.isExpired()) {
                 stats.recordMiss(key);
                 stats.totalExpirations.incrementAndGet();
-                remove(key);
+                shouldRemove = true;
                 return null;
             }
             
             entry.recordAccess();
-            accessOrder.put(key, System.currentTimeMillis());
+            synchronized (accessOrder) {
+                accessOrder.put(key, System.currentTimeMillis());
+            }
             
             if (config.enableWeakReferences) {
                 CacheEntry refCheck = entry.weakRef.get();
                 if (refCheck == null || entry.evicted) {
                     stats.recordMiss(key);
-                    remove(key);
+                    shouldRemove = true;
                     return null;
                 }
             }
             
             stats.recordHit(key);
-            
-            return entry.value.clone();
+            result = entry.value.clone();
             
         } finally {
             cacheLock.readLock().unlock();
         }
+        
+        if (shouldRemove) {
+            remove(key);
+        }
+        return result;
     }
     
     
@@ -300,7 +314,9 @@ public class CacheManager {
                 stats.currentEntries.decrementAndGet();
                 entry.evicted = true;
             }
-            accessOrder.remove(key);
+            synchronized (accessOrder) {
+                accessOrder.remove(key);
+            }
         } finally {
             cacheLock.writeLock().unlock();
         }
@@ -369,7 +385,9 @@ public class CacheManager {
                     stats.currentSize.addAndGet(-cacheEntry.size);
                     stats.currentEntries.decrementAndGet();
                     stats.totalExpirations.incrementAndGet();
-                    accessOrder.remove(entry.getKey());
+                    synchronized (accessOrder) {
+                        accessOrder.remove(entry.getKey());
+                    }
                     cacheEntry.evicted = true;
                 }
             }
@@ -437,10 +455,12 @@ public class CacheManager {
         long oldestAccess = Long.MAX_VALUE;
         String oldestKey = null;
         
-        for (Map.Entry<String, Long> entry : accessOrder.entrySet()) {
-            if (entry.getValue() < oldestAccess) {
-                oldestAccess = entry.getValue();
-                oldestKey = entry.getKey();
+        synchronized (accessOrder) {
+            for (Map.Entry<String, Long> entry : accessOrder.entrySet()) {
+                if (entry.getValue() < oldestAccess) {
+                    oldestAccess = entry.getValue();
+                    oldestKey = entry.getKey();
+                }
             }
         }
         
@@ -521,7 +541,9 @@ public class CacheManager {
                 entry.evicted = true;
             }
             cache.clear();
-            accessOrder.clear();
+            synchronized (accessOrder) {
+                accessOrder.clear();
+            }
             stats.currentSize.set(0);
             stats.currentEntries.set(0);
         } finally {

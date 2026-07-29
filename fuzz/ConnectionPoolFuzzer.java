@@ -137,6 +137,8 @@ public class ConnectionPoolFuzzer {
             
             connectionPool.getStats();
             
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             
         }

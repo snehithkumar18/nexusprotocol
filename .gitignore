@@ -17,5 +17,7 @@ poc_generator.py
 rebrand.py
 fix.patch
 diversify.py
+poc_*.bin
+generate_pocs.py
 
 

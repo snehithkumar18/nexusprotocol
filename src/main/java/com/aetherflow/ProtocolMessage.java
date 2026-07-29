@@ -452,6 +452,9 @@ public class ProtocolMessage {
 
 
     public byte[] serialize() {
+        if (messageType == null) {
+            throw new IllegalStateException("Message type is null");
+        }
         
         int headerSize = 4 + 
                         2 + 
@@ -536,82 +539,78 @@ public class ProtocolMessage {
 
 
     public static ProtocolMessage deserialize(byte[] data) {
-        if (data == null || data.length < 35) { 
+        if (data == null || data.length < 42) {
             return null;
         }
         
-        ByteBuffer buffer = ByteBuffer.wrap(data);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-        
-        ProtocolMessage message = new ProtocolMessage();
-        
-        
-        byte[] magic = new byte[4];
-        buffer.get(magic);
-        message.setMagic(magic);
-        
-        
-        message.setProtocolVersion(buffer.getShort() & 0xFFFF);
-        
-        
-        byte messageTypeCode = buffer.get();
-        message.setMessageType(MessageType.fromCode(messageTypeCode));
-        
-        
-        message.setSequenceNumber(buffer.getInt());
-        
-        
-        message.setSessionId(buffer.getInt());
-        
-        
-        message.setFlags(buffer.getInt());
-        message.parseFlags();
-        
-        
-        int payloadLength = buffer.getInt();
-        if (payloadLength < 0 || payloadLength > 16 * 1024 * 1024 || payloadLength > buffer.remaining()) {
+        try {
+            ByteBuffer buffer = ByteBuffer.wrap(data);
+            buffer.order(ByteOrder.BIG_ENDIAN);
+            
+            ProtocolMessage message = new ProtocolMessage();
+            
+            byte[] magic = new byte[4];
+            buffer.get(magic);
+            message.setMagic(magic);
+            
+            message.setProtocolVersion(buffer.getShort() & 0xFFFF);
+            
+            byte messageTypeCode = buffer.get();
+            MessageType type = MessageType.fromCode(messageTypeCode);
+            if (type == null) {
+                return null;
+            }
+            message.setMessageType(type);
+            
+            message.setSequenceNumber(buffer.getInt());
+            
+            message.setSessionId(buffer.getInt());
+            
+            message.setFlags(buffer.getInt());
+            message.parseFlags();
+            
+            int payloadLength = buffer.getInt();
+            if (payloadLength < 0 || payloadLength > 16 * 1024 * 1024 || payloadLength > buffer.remaining()) {
+                return null;
+            }
+            message.setPayloadLength(payloadLength);
+            
+            message.setChecksum(buffer.getInt());
+            
+            message.setTimestamp(buffer.getInt());
+            
+            message.setFragmentOffset(buffer.getInt());
+            message.setTotalFragmentSize(buffer.getInt());
+            message.setFragmentIndex(buffer.getShort() & 0xFFFF);
+            message.setTotalFragments(buffer.getShort() & 0xFFFF);
+            
+            int headerCount = buffer.getShort() & 0xFFFF;
+            Map<String, String> headers = new HashMap<>();
+            for (int i = 0; i < headerCount; i++) {
+                int keyLength = buffer.getShort() & 0xFFFF;
+                byte[] keyBytes = new byte[keyLength];
+                buffer.get(keyBytes);
+                String key = new String(keyBytes);
+                
+                int valueLength = buffer.getShort() & 0xFFFF;
+                byte[] valueBytes = new byte[valueLength];
+                buffer.get(valueBytes);
+                String value = new String(valueBytes);
+                
+                headers.put(key, value);
+            }
+            message.setExtendedHeaders(headers);
+            
+            if (message.payloadLength > 0 && buffer.remaining() >= message.payloadLength) {
+                byte[] payload = new byte[message.payloadLength];
+                buffer.get(payload);
+                message.setPayload(payload);
+            }
+            
+            return message;
+        } catch (java.nio.BufferUnderflowException e) {
             return null;
         }
-        message.setPayloadLength(payloadLength);
-        
-        
-        message.setChecksum(buffer.getInt());
-        
-        
-        message.setTimestamp(buffer.getInt());
-        
-        
-        message.setFragmentOffset(buffer.getInt());
-        message.setTotalFragmentSize(buffer.getInt());
-        message.setFragmentIndex(buffer.getShort() & 0xFFFF);
-        message.setTotalFragments(buffer.getShort() & 0xFFFF);
-        
-        
-        int headerCount = buffer.getShort() & 0xFFFF;
-        Map<String, String> headers = new HashMap<>();
-        for (int i = 0; i < headerCount; i++) {
-            int keyLength = buffer.getShort() & 0xFFFF;
-            byte[] keyBytes = new byte[keyLength];
-            buffer.get(keyBytes);
-            String key = new String(keyBytes);
-            
-            int valueLength = buffer.getShort() & 0xFFFF;
-            byte[] valueBytes = new byte[valueLength];
-            buffer.get(valueBytes);
-            String value = new String(valueBytes);
-            
-            headers.put(key, value);
-        }
-        message.setExtendedHeaders(headers);
-        
-        
-        if (message.payloadLength > 0 && buffer.remaining() >= message.payloadLength) {
-            byte[] payload = new byte[message.payloadLength];
-            buffer.get(payload);
-            message.setPayload(payload);
-        }
-        
-        return message;
     }
     
     @Override

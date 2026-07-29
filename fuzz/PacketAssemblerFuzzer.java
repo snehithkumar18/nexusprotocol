@@ -109,6 +109,8 @@ public class PacketAssemblerFuzzer {
             
             packetAssembler.cleanupExpiredContexts();
             
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             
         }
