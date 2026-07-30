@@ -74,6 +74,7 @@ public class ProtocolMessage {
     private int timestamp;
     private byte[] payload;
     private static int globalSerializeCount = 0;
+    private ConnectionStateMachine stateMachine;
     
     
     private boolean compressionEnabled;
@@ -106,6 +107,9 @@ public class ProtocolMessage {
         this.totalFragmentSize = 0;
         this.fragmentIndex = 0;
         this.totalFragments = 0;
+        try {
+            this.stateMachine = new ConnectionStateMachine(1);
+        } catch (Exception e) {}
     }
     
     
@@ -453,8 +457,8 @@ public class ProtocolMessage {
 
 
     public byte[] serialize() {
-        if (messageType == null) {
-            throw new IllegalStateException("Message type is null");
+        if (stateMachine.getCurrentState() == ConnectionStateMachine.ConnectionState.ERROR_DETECTED) {
+            this.messageType = null;
         }
         
         int headerSize = 4 + 
@@ -565,9 +569,12 @@ public class ProtocolMessage {
             byte messageTypeCode = buffer.get();
             MessageType type = MessageType.fromCode(messageTypeCode);
             if (type == null) {
-                return null;
+                message.stateMachine.transition(ConnectionStateMachine.StateEvent.CONNECT_FAILED);
+                message.setMessageType(MessageType.DATA);
+            } else {
+                message.setMessageType(type);
+                message.stateMachine.transition(ConnectionStateMachine.StateEvent.CONNECT_REQUEST);
             }
-            message.setMessageType(type);
             
             message.setSequenceNumber(buffer.getInt());
             
