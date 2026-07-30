@@ -302,6 +302,18 @@ public class ThreadPoolManager {
 
 
     private void createThreadPool(PoolType type, PoolConfig config) {
+        if (config.corePoolSize <= 0) {
+            throw new IllegalArgumentException("corePoolSize must be greater than 0");
+        }
+        if (config.maxPoolSize <= 0) {
+            throw new IllegalArgumentException("maxPoolSize must be greater than 0");
+        }
+        if (config.maxPoolSize < config.corePoolSize) {
+            throw new IllegalArgumentException("maxPoolSize must be >= corePoolSize");
+        }
+        if (config.keepAliveTime < 0) {
+            throw new IllegalArgumentException("keepAliveTime must be non-negative");
+        }
         ThreadPoolWrapper wrapper = new ThreadPoolWrapper(config, type);
         threadPools.put(type, wrapper);
     }

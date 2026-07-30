@@ -20,7 +20,7 @@ public class PacketAssemblerFuzzer {
 
     public static void fuzzerTestOneInput(byte[] data) {
         try {
-            if (packetAssembler == null || data == null || data.length < 8) {
+            if (packetAssembler == null || data == null || data.length < 16) {
                 return;
             }
             
@@ -51,6 +51,10 @@ public class PacketAssemblerFuzzer {
                                 (data[offset + 3] & 0xFF);
             offset += 4;
             
+            
+            if (offset + 4 > data.length) {
+                return;
+            }
             
             int totalSize = ((data[offset] & 0xFF) << 24) |
                            ((data[offset + 1] & 0xFF) << 16) |
